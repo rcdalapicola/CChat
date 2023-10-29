@@ -24,9 +24,13 @@ int main() {
         return 1;
     }
 
-    const char* message = "Testing 1, 2, 3...";
-    send(clientSocket, message, strlen(message), 0);
+    char buffer[256];
+    do {
+        std::cout << "Enter your message: ";
+        std::cin.getline(buffer, 256);
 
+        send(clientSocket, buffer, strlen(buffer), 0);
+    } while (buffer[0] != '\0');
     std::cout << "Connection stablished and closed from client side." << std::endl;
 
     close(clientSocket);

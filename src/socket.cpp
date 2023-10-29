@@ -61,10 +61,13 @@ Socket Socket::getIncomingConnection() {
     return Socket(clientSocket);
 }
 
-void Socket::getIncomingMessage(char* buffer, int bufferSize) {
+void Socket::getIncomingMessages(const std::function<void(const char*)>& callbackFunction) {
     ssize_t bytesRead;
+    static const int bufferSize = 256;
+    char buffer[bufferSize];
 
     while ((bytesRead = recv(socketConnection, buffer, bufferSize, 0)) > 0) {
-        buffer[bytesRead] = '\0'; // might overflow memory
+        buffer[bytesRead] = '\0'; 
+        callbackFunction(buffer);
     }
 }

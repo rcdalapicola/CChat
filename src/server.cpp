@@ -3,7 +3,7 @@
 #include <netinet/in.h> // ?
 #include <unistd.h>     // close()
 #include "socket.h"
-
+#include <functional>
 
 int main() {
     Socket sck;
@@ -13,15 +13,16 @@ int main() {
         return 1;
     }
     std::cout << "Server connected." << std::endl;
+        
+    Socket tst(sck.getIncomingConnection());
 
-    Socket client = sck.getIncomingConnection();
+    auto messageCallback = [] (const char* message) {
+            std::cout << "Received message: \"" << message << "\"" << std::endl;
+    };
+    
+    tst.getIncomingMessages(messageCallback);
 
-    static const int bufferSize = 256;
-    char buffer[bufferSize];
-
-    client.getIncomingMessage(buffer, bufferSize);
-
-    std::cout << "Message recieved form client: " << buffer << std::endl;
+    close(tst.socketConnection);
 
     std::cout << "Connection stablished and closed from server. " << std::endl;
 

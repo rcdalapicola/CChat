@@ -1,5 +1,5 @@
 #include <netinet/in.h> // sockaddr_in
-
+#include <functional>
 
 class Socket {
     public:
@@ -12,7 +12,7 @@ class Socket {
 
         Socket getIncomingConnection(); //return socket for incoming connection
 
-        void getIncomingMessage(char* buffer, int bufferSize);
+        void getIncomingMessages(const std::function<void(const char*)>& callbackFunction);
         
         int socketConnection;
     private:
