@@ -13,6 +13,9 @@ Socket::Socket(){
 Socket::Socket(int socket_p) : socketConnection(socket_p) {
 }
 
+Socket::Socket(const Socket& socket_p) : socketConnection(socket_p.socketConnection) {
+}
+
 Socket::~Socket() {
     if (socketConnection != -1) {
         close(socketConnection);

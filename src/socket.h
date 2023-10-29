@@ -5,6 +5,7 @@ class Socket {
     public:
         Socket();
         Socket(int socket);
+        Socket(const Socket& socket);
         ~Socket();
 
         int openListenerConnection(const char *ip, int port);
