@@ -5,6 +5,8 @@
 #include <netinet/in.h>
 #include <unistd.h>     // close()
 
+#include "socket.h"
+
 
 int readInput(int argc, char *argv[], char*& userName, char*& ip, int& port) {
     if (argc < 3) {
@@ -54,34 +56,21 @@ int main(int argc, char *argv[]) {
 
     std::cout << "Starting chat as user \"" << user << "\". Connecting to server " << ip << ":" << port << "..." << std::endl;
 
-    int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
+    Socket writer;
 
-    if (clientSocket == -1) {
-        std::cout << "Error creating client socket" << std::endl;
-        return 1;
-    }
+    writer.openWriterConnection(ip, port);
 
-    struct sockaddr_in serverAddress;
-    serverAddress.sin_family = AF_INET;
-    serverAddress.sin_port = htons(port); 
-    serverAddress.sin_addr.s_addr = inet_addr(ip);
-
-    if (connect(clientSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) == -1) {
-        std::cout << "Error connecting to the server" << std::endl;
-        close(clientSocket);
-        return 1;
-    }
-
-    char buffer[256];
+    Message chatMessage;
+    strncpy(chatMessage.user, user, userBufferSize);
     do {
         std::cout << "Enter your message: ";
-        std::cin.getline(buffer, 256);
+        std::cin.getline(chatMessage.content, contentBufferSize);
+        chatMessage.user[userBufferSize - 1] = '\0';
 
-        send(clientSocket, buffer, strlen(buffer), 0);
-    } while (buffer[0] != '\0');
-    std::cout << "Connection stablished and closed from client side." << std::endl;
+        writer.sendMessage(chatMessage);
+    } while (chatMessage.content[0] != '\0');
 
-    close(clientSocket);
+    std::cout << "Connection closed from client side." << std::endl;
 
     return 0;
 }

@@ -4,7 +4,12 @@
 
 #include <unistd.h>     // close()
 #include <arpa/inet.h>
+#include <string.h>
 
+
+const char* serializeMessage(const Message& message) {
+    return reinterpret_cast<const char*>(&message);
+}
 
 Socket::Socket(){
     socketConnection = socket(AF_INET, SOCK_STREAM, 0);
@@ -20,6 +25,25 @@ Socket::~Socket() {
     if (socketConnection != -1) {
         close(socketConnection);
     }
+}
+
+int Socket::openWriterConnection(const char *ip, int port) {
+    struct sockaddr_in serverAddress;
+    serverAddress.sin_family = AF_INET;
+    serverAddress.sin_port = htons(port);
+    serverAddress.sin_addr.s_addr = inet_addr(ip);
+
+    if (connect(socketConnection, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) == -1) {
+        std::cout << "Error connecting to the server" << std::endl;
+        close(socketConnection);
+        return 1;
+    }
+
+    return 0;
+}
+
+int Socket::sendMessage(const Message& message) {
+    return send(socketConnection, serializeMessage(message), 512, 0);
 }
 
 int Socket::openListenerConnection(const char *ip, int port) {
@@ -56,7 +80,7 @@ Socket Socket::getIncomingConnection() {
     if (clientSocket == -1) {
         std::cout << "Error accepting client connection" << std::endl;
         close(socketConnection);
-        return 1;
+        return Socket(-1);
     }
 
     std::cout << "Client connected to server!" << std::endl;

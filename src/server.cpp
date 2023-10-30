@@ -9,7 +9,7 @@
 
 void processIncomingMessages(const Socket* listenerSocket, const std::function<void(const char*)>& callbackFunction) {
     ssize_t bytesRead;
-    static const int bufferSize = 256;
+    static const int bufferSize = 512;
     char buffer[bufferSize];
 
     while ((bytesRead = recv(listenerSocket->socketConnection, buffer, bufferSize, 0)) > 0) {
@@ -32,9 +32,14 @@ int main() {
     do {
         Socket* listenerSocket = new Socket(sck.getIncomingConnection());
 
+        if (listenerSocket->socketConnection == -1) {
+            break;
+        }
+
         auto processMessage = [&listenerSocket] () {
             auto messageCallback = [] (const char* message) {
-                std::cout << "Received message: \"" << message << "\"" << std::endl;
+                const Message *decodedMessage = reinterpret_cast<const Message*>(message);
+                std::cout << decodedMessage->user <<": " << decodedMessage->content << std::endl;
             };
             processIncomingMessages(listenerSocket, messageCallback);
         };
@@ -44,7 +49,7 @@ int main() {
         std::cout << "Emplaced thread " << count << std::endl;
     } while(1);
 
-    std::cout << "Connection stablished and closed from server. " << std::endl;
+    std::cout << "Connection closed from server side. " << std::endl;
 
     return 0;
 }
