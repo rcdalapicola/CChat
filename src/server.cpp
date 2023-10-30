@@ -7,6 +7,11 @@
 #include <thread>
 #include <vector>
 
+void handleClientMessage(const char* message, const Socket& socket) {
+    const Message *decodedMessage = reinterpret_cast<const Message*>(message);
+    std::cout << decodedMessage->user <<": " << decodedMessage->content << std::endl;
+    socket.sendMessage(*decodedMessage);
+}
 
 int main() {
     Socket sck;
@@ -27,12 +32,7 @@ int main() {
         }
 
         auto processMessage = [&listenerSocket] () {
-            auto messageCallback = [] (const char* message, const Socket& socket) {
-                const Message *decodedMessage = reinterpret_cast<const Message*>(message);
-                std::cout << decodedMessage->user <<": " << decodedMessage->content << std::endl;
-                socket.sendMessage(*decodedMessage);
-            };
-            listenerSocket->processIncomingMessages(messageCallback);
+            listenerSocket->processIncomingMessages(handleClientMessage);
         };
 
         threadList.emplace_back(processMessage);

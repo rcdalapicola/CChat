@@ -9,6 +9,11 @@
 #include "socket.h"
 
 
+void handleServerMessage(const char* message, const Socket& socket) {
+    const Message *decodedMessage = reinterpret_cast<const Message*>(message);
+    std::cout << decodedMessage->user <<": " << decodedMessage->content << std::endl;
+};
+
 int readInput(int argc, char *argv[], char*& userName, char*& ip, int& port) {
     if (argc < 3) {
         return -1;
@@ -62,24 +67,24 @@ int main(int argc, char *argv[]) {
     writer.openWriterConnection(ip, port);
 
     auto listenToServer = [&writer] () {
-        auto messageCallback = [] (const char* message, const Socket& socket) {
-                const Message *decodedMessage = reinterpret_cast<const Message*>(message);
-                std::cout << decodedMessage->user <<": " << decodedMessage->content << std::endl;
-            };
-            writer.processIncomingMessages(messageCallback);
+        
+        writer.processIncomingMessages(handleServerMessage);
     };
 
     std::thread t1(listenToServer);
 
     Message chatMessage;
     strncpy(chatMessage.user, user, userBufferSize);
-    do {
+    std::cout << "Enter your message: ";
+    std::cin.getline(chatMessage.content, contentBufferSize);
+    chatMessage.user[userBufferSize - 1] = '\0';
+    while (chatMessage.content[0] != '\0') {
+        writer.sendMessage(chatMessage);
+
         std::cout << "Enter your message: ";
         std::cin.getline(chatMessage.content, contentBufferSize);
-        chatMessage.user[userBufferSize - 1] = '\0';
-
-        writer.sendMessage(chatMessage);
-    } while (chatMessage.content[0] != '\0');
+        chatMessage.content[contentBufferSize - 1] = '\0';
+    };
 
     std::cout << "Connection closed from client side." << std::endl;
 
