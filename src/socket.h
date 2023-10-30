@@ -23,8 +23,8 @@ class Socket {
 
         Socket getIncomingConnection(); //return socket for incoming connection
 
-        void getIncomingMessages(const std::function<void(const char*)>& callbackFunction);
-        int sendMessage(const Message& message);
+        void processIncomingMessages(const std::function<void(const char*, const Socket&)>& callbackFunction);
+        int sendMessage(const Message& message) const;
 
         int socketConnection;
     private:

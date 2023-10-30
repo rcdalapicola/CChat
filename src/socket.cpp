@@ -42,7 +42,7 @@ int Socket::openWriterConnection(const char *ip, int port) {
     return 0;
 }
 
-int Socket::sendMessage(const Message& message) {
+int Socket::sendMessage(const Message& message) const {
     return send(socketConnection, serializeMessage(message), 512, 0);
 }
 
@@ -88,13 +88,14 @@ Socket Socket::getIncomingConnection() {
     return Socket(clientSocket);
 }
 
-void Socket::getIncomingMessages(const std::function<void(const char*)>& callbackFunction) {
+void Socket::processIncomingMessages(const std::function<void(const char*, const Socket&)>& callbackFunction) {
     ssize_t bytesRead;
-    static const int bufferSize = 256;
+    static const int bufferSize = 512;
     char buffer[bufferSize];
+    auto connection = socketConnection;
 
-    while ((bytesRead = recv(socketConnection, buffer, bufferSize, 0)) > 0) {
+    while ((bytesRead = recv(connection, buffer, bufferSize, 0)) > 0) {
         buffer[bytesRead] = '\0'; 
-        callbackFunction(buffer);
+        callbackFunction(buffer, *this);
     }
 }

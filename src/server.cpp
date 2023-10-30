@@ -7,20 +7,10 @@
 #include <thread>
 #include <vector>
 
-void processIncomingMessages(const Socket* listenerSocket, const std::function<void(const char*)>& callbackFunction) {
-    ssize_t bytesRead;
-    static const int bufferSize = 512;
-    char buffer[bufferSize];
-
-    while ((bytesRead = recv(listenerSocket->socketConnection, buffer, bufferSize, 0)) > 0) {
-        buffer[bytesRead] = '\0'; 
-        callbackFunction(buffer);
-    }
-}
 
 int main() {
     Socket sck;
-    std::cout << "Server soc: " << sck.socketConnection << std::endl;
+    
     if (sck.openListenerConnection(8080) == -1) {
         std::cout << "Error binding server socket" << std::endl;
         return 1;
@@ -37,11 +27,12 @@ int main() {
         }
 
         auto processMessage = [&listenerSocket] () {
-            auto messageCallback = [] (const char* message) {
+            auto messageCallback = [] (const char* message, const Socket& socket) {
                 const Message *decodedMessage = reinterpret_cast<const Message*>(message);
                 std::cout << decodedMessage->user <<": " << decodedMessage->content << std::endl;
+                socket.sendMessage(*decodedMessage);
             };
-            processIncomingMessages(listenerSocket, messageCallback);
+            listenerSocket->processIncomingMessages(messageCallback);
         };
 
         threadList.emplace_back(processMessage);

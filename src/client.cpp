@@ -4,6 +4,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <unistd.h>     // close()
+#include <thread>
 
 #include "socket.h"
 
@@ -59,6 +60,16 @@ int main(int argc, char *argv[]) {
     Socket writer;
 
     writer.openWriterConnection(ip, port);
+
+    auto listenToServer = [&writer] () {
+        auto messageCallback = [] (const char* message, const Socket& socket) {
+                const Message *decodedMessage = reinterpret_cast<const Message*>(message);
+                std::cout << decodedMessage->user <<": " << decodedMessage->content << std::endl;
+            };
+            writer.processIncomingMessages(messageCallback);
+    };
+
+    std::thread t1(listenToServer);
 
     Message chatMessage;
     strncpy(chatMessage.user, user, userBufferSize);
