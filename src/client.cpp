@@ -9,7 +9,7 @@
 #include "socket.h"
 
 
-void handleServerMessage(const char* message, const Socket& socket) {
+void handleServerMessage(const char* message, const std::vector<Socket>& socketList, Socket& socket) {
     const Message *decodedMessage = reinterpret_cast<const Message*>(message);
     std::cout << decodedMessage->user <<": " << decodedMessage->content << std::endl;
 };
@@ -81,10 +81,11 @@ int main(int argc, char *argv[]) {
     Socket writer;
 
     writer.openWriterConnection(ip, port);
+    writer.onMessageReceived(handleServerMessage);
 
     auto listenToServer = [&writer] () {  
-
-        writer.processIncomingMessages(handleServerMessage);
+        std::vector<Socket> test;
+        writer.processIncomingMessages(test);
     };
 
     std::thread t1(listenToServer);
@@ -93,8 +94,8 @@ int main(int argc, char *argv[]) {
     Message chatMessage;
     chatMessage.content[contentBufferSize - 1] = '\0';
     strncpy(chatMessage.user, user, userBufferSize);
+    std::cout << "You can start chatting!" << std::endl;
     while (1) {
-        std::cout << "Enter your message: ";
         std::cin.getline(chatMessage.content, contentBufferSize - 1);
 
         if (chatMessage.content[0] == '\0')

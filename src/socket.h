@@ -15,7 +15,6 @@ class Socket {
         Socket();
         Socket(int socket);
         Socket(const Socket& socket);
-        ~Socket();
 
         int openListenerConnection(const char *ip, int port);
         int openListenerConnection(int port);
@@ -24,9 +23,17 @@ class Socket {
 
         Socket getIncomingConnection(); //return socket for incoming connection
 
-        void processIncomingMessages(const std::function<void(const char*, const Socket&)>& callbackFunction);
+        void processIncomingMessages(std::vector<Socket>& socketList);
         int sendMessage(const Message& message) const;
+
+        void closeConnection();
+        bool operator==(const Socket& comparedSocket) const;
+
+        void onMessageReceived(const std::function<void(const char*, std::vector<Socket>&, Socket&)> callbackFunction);
+        void onTransmissionEnded(std::function<void(std::vector<Socket>&, Socket&)> callbackFunction);
 
         int socketConnection;
     private:
+        std::function<void(const char*, std::vector<Socket>&, Socket&)> onMessageReceivedCallback;
+        std::function<void(std::vector<Socket>&, Socket&)> onTransmissionEndedCallback;
 };

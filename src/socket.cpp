@@ -11,6 +11,10 @@ const char* serializeMessage(const Message& message) {
     return reinterpret_cast<const char*>(&message);
 }
 
+bool Socket::operator==(const Socket& comparedSocket) const {
+    return this->socketConnection == comparedSocket.socketConnection;
+}
+
 Socket::Socket(){
     socketConnection = socket(AF_INET, SOCK_STREAM, 0);
 }
@@ -18,7 +22,11 @@ Socket::Socket(){
 Socket::Socket(int socket_p) : socketConnection(socket_p) {
 }
 
-Socket::Socket(const Socket& socket_p) : socketConnection(socket_p.socketConnection) {
+Socket::Socket(const Socket& socket_p) : socketConnection(socket_p.socketConnection),
+                                         onMessageReceivedCallback(socket_p.onMessageReceivedCallback),
+                                         onTransmissionEndedCallback(socket_p.onTransmissionEndedCallback)
+{
+    
 }
 
 int Socket::openWriterConnection(const char *ip, int port) {
@@ -82,15 +90,34 @@ Socket Socket::getIncomingConnection() {
     return Socket(clientSocket);
 }
 
-void Socket::processIncomingMessages(const std::function<void(const char*, const Socket&)>& callbackFunction) {
+void Socket::closeConnection() {
+    close(socketConnection);
+}
+
+void Socket::processIncomingMessages(std::vector<Socket>& socketList) {
     ssize_t bytesRead;
     static const int bufferSize = 512;
     char buffer[bufferSize];
     auto connection = socketConnection;
 
     while ((bytesRead = recv(connection, buffer, bufferSize, 0)) > 0) {
-        buffer[bytesRead] = '\0'; 
-        callbackFunction(buffer, *this);
+        buffer[bytesRead] = '\0';
+        if (onMessageReceivedCallback) {
+            onMessageReceivedCallback(buffer, socketList, *this);
+        }
     }
+
+    if (onTransmissionEndedCallback) {
+        onTransmissionEndedCallback(socketList, *this);
+    }
+
     std::cout << "Client ended" << std::endl;
+}
+
+void Socket::onMessageReceived(const std::function<void(const char*, std::vector<Socket>&, Socket&)> callbackFunction) {
+    onMessageReceivedCallback = callbackFunction;
+}
+
+void Socket::onTransmissionEnded(std::function<void(std::vector<Socket>&, Socket&)> callbackFunction) {
+    onTransmissionEndedCallback = callbackFunction;
 }

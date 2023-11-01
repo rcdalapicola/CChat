@@ -8,27 +8,46 @@
 #include <vector>
 
 
-void handleClientMessage(const char* message, const Socket& socket) {
+void handleClientMessage(const char* message, std::vector<Socket>& socketList, Socket& socket) {
     const Message *decodedMessage = reinterpret_cast<const Message*>(message);
     std::cout << decodedMessage->user <<": " << decodedMessage->content << std::endl;
-    socket.sendMessage(*decodedMessage);
+    for (const auto& socket: socketList) {
+        socket.sendMessage(*decodedMessage);
+    }
+}
+
+void handleTransmissionEnd(std::vector<Socket>& socketList, Socket& socket) {
+    socket.closeConnection();
+    auto it = std::find(socketList.begin(), socketList.end(), socket);
+    if (it != socketList.end()) {
+        socketList.erase(it);
+    }
+
+    std::cout << "Client disconnected." << std::endl;
 }
 
 int main() {
     Socket sck;
 
-    if (sck.openListenerConnection(8080) == -1) {
+    if (sck.openListenerConnection(8081) == -1) {
         std::cout << "Error binding server socket" << std::endl;
         return 1;
     }
     std::cout << "Server connected." << std::endl;
 
+    std::vector<Socket> socketList;
     while (true) {
-        auto listenerSocket = sck.getIncomingConnection();
+        socketList.emplace_back(sck.getIncomingConnection());
+        auto& listenerSocket = socketList.back();
+
         std::cout << "Client connected!" << std::endl;
 
-        auto processMessage = [&listenerSocket] () {
-            listenerSocket.processIncomingMessages(handleClientMessage);
+        listenerSocket.onMessageReceived(handleClientMessage);
+        listenerSocket.onTransmissionEnded(handleTransmissionEnd);
+
+        auto processMessage = [&listenerSocket, &socketList] () {
+            Socket tst(listenerSocket);
+            tst.processIncomingMessages(socketList);
         };
 
         std::thread clientThread(processMessage);
