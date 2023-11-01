@@ -5,7 +5,7 @@
 #include <unistd.h>     // close()
 #include <arpa/inet.h>
 #include <string.h>
-
+#include <memory>
 
 const char* serializeMessage(const Message& message) {
     return reinterpret_cast<const char*>(&message);
@@ -19,12 +19,6 @@ Socket::Socket(int socket_p) : socketConnection(socket_p) {
 }
 
 Socket::Socket(const Socket& socket_p) : socketConnection(socket_p.socketConnection) {
-}
-
-Socket::~Socket() {
-    if (socketConnection != -1) {
-        close(socketConnection);
-    }
 }
 
 int Socket::openWriterConnection(const char *ip, int port) {
@@ -98,4 +92,5 @@ void Socket::processIncomingMessages(const std::function<void(const char*, const
         buffer[bytesRead] = '\0'; 
         callbackFunction(buffer, *this);
     }
+    std::cout << "Client ended" << std::endl;
 }

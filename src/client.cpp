@@ -53,8 +53,24 @@ int readInput(int argc, char *argv[], char*& userName, char*& ip, int& port) {
     return 0;
 }
 
-int main(int argc, char *argv[]) {
+#include <iostream>
+#include <cstring>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
+#include <thread>
 
+void receiveMessages(int clientSocket) {
+    char buffer[1024];
+    ssize_t bytesRead;
+
+    while ((bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0)) > 0) {
+        buffer[bytesRead] = '\0';
+        std::cout << "Server says: " << buffer << std::endl;
+    }
+}
+
+int main(int argc, char *argv[]) {    
     char *user, *ip;
     int port;
 
@@ -66,27 +82,30 @@ int main(int argc, char *argv[]) {
 
     writer.openWriterConnection(ip, port);
 
-    auto listenToServer = [&writer] () {
-        
+    auto listenToServer = [&writer] () {  
+
         writer.processIncomingMessages(handleServerMessage);
     };
 
     std::thread t1(listenToServer);
+    t1.detach();
 
     Message chatMessage;
+    chatMessage.content[contentBufferSize - 1] = '\0';
     strncpy(chatMessage.user, user, userBufferSize);
-    std::cout << "Enter your message: ";
-    std::cin.getline(chatMessage.content, contentBufferSize);
-    chatMessage.user[userBufferSize - 1] = '\0';
-    while (chatMessage.content[0] != '\0') {
-        writer.sendMessage(chatMessage);
-
+    while (1) {
         std::cout << "Enter your message: ";
-        std::cin.getline(chatMessage.content, contentBufferSize);
-        chatMessage.content[contentBufferSize - 1] = '\0';
+        std::cin.getline(chatMessage.content, contentBufferSize - 1);
+
+        if (chatMessage.content[0] == '\0')
+        {
+            break;
+        }
+
+        writer.sendMessage(chatMessage);
     };
 
-    std::cout << "Connection closed from client side." << std::endl;
+    close(writer.socketConnection);
 
     return 0;
 }

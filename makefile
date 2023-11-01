@@ -2,7 +2,7 @@ CC = g++
 OBJS_SERVER = server.o socket.o
 OBJS_CLIENT = client.o socket.o
 DEBUG_FLAG = -DNDEBUG
-COMP_FLAG = -std=c++11
+COMP_FLAG = -std=c++20
 #COMP_FLAG = -std=c++11 -Wall -pedantic-errors -Werror
 
 BUILD_PATH = build/

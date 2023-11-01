@@ -1,5 +1,6 @@
 #include <netinet/in.h> // sockaddr_in
 #include <functional>
+#include <memory>
 
 static const int userBufferSize = 64;
 static const int contentBufferSize = 512 - userBufferSize;
