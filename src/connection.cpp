@@ -1,4 +1,4 @@
-#include "socket.h"
+#include "connection.h"
 
 #include <iostream>
 
@@ -11,25 +11,25 @@ const char* serializeMessage(const Message& message) {
     return reinterpret_cast<const char*>(&message);
 }
 
-bool Socket::operator==(const Socket& comparedSocket) const {
+bool Connection::operator==(const Connection& comparedSocket) const {
     return this->socketConnection == comparedSocket.socketConnection;
 }
 
-Socket::Socket(){
+Connection::Connection(){
     socketConnection = socket(AF_INET, SOCK_STREAM, 0);
 }
 
-Socket::Socket(int socket_p) : socketConnection(socket_p) {
+Connection::Connection(int socket_p) : socketConnection(socket_p) {
 }
 
-Socket::Socket(const Socket& socket_p) : socketConnection(socket_p.socketConnection),
+Connection::Connection(const Connection& socket_p) : socketConnection(socket_p.socketConnection),
                                          onMessageReceivedCallback(socket_p.onMessageReceivedCallback),
                                          onTransmissionEndedCallback(socket_p.onTransmissionEndedCallback)
 {
-    
+
 }
 
-int Socket::openWriterConnection(const char *ip, int port) {
+int Connection::openWriterConnection(const char *ip, int port) {
     struct sockaddr_in serverAddress;
     serverAddress.sin_family = AF_INET;
     serverAddress.sin_port = htons(port);
@@ -44,11 +44,11 @@ int Socket::openWriterConnection(const char *ip, int port) {
     return 0;
 }
 
-int Socket::sendMessage(const Message& message) const {
+int Connection::sendMessage(const Message& message) const {
     return send(socketConnection, serializeMessage(message), 512, 0);
 }
 
-int Socket::openListenerConnection(const char *ip, int port) {
+int Connection::openListenerConnection(const char *ip, int port) {
     struct sockaddr_in serverAddress;
     serverAddress.sin_family = AF_INET;
     serverAddress.sin_port = htons(port);
@@ -69,11 +69,11 @@ int Socket::openListenerConnection(const char *ip, int port) {
     return 0;
 }
 
-int Socket::openListenerConnection(int port) {
+int Connection::openListenerConnection(int port) {
     return openListenerConnection(nullptr, port); // Listen on all available interfaces
 }
 
-Socket Socket::getIncomingConnection() {
+Connection Connection::getIncomingConnection() {
     int clientSocket;
     struct sockaddr_in clientAddress;
     socklen_t clientAddressLength = sizeof(clientAddress);
@@ -82,19 +82,19 @@ Socket Socket::getIncomingConnection() {
     if (clientSocket == -1) {
         std::cout << "Error accepting client connection" << std::endl;
         close(socketConnection);
-        return Socket(-1);
+        return Connection(-1);
     }
 
     std::cout << "Client connected to server!" << std::endl;
 
-    return Socket(clientSocket);
+    return Connection(clientSocket);
 }
 
-void Socket::closeConnection() {
+void Connection::closeConnection() {
     close(socketConnection);
 }
 
-void Socket::processIncomingMessages(std::vector<Socket>& socketList) {
+void Connection::processIncomingMessages(std::vector<Connection>& socketList) {
     ssize_t bytesRead;
     static const int bufferSize = 512;
     char buffer[bufferSize];
@@ -114,10 +114,10 @@ void Socket::processIncomingMessages(std::vector<Socket>& socketList) {
     std::cout << "Client ended" << std::endl;
 }
 
-void Socket::onMessageReceived(const std::function<void(const char*, std::vector<Socket>&, Socket&)> callbackFunction) {
+void Connection::onMessageReceived(const std::function<void(const char*, std::vector<Connection>&, Connection&)> callbackFunction) {
     onMessageReceivedCallback = callbackFunction;
 }
 
-void Socket::onTransmissionEnded(std::function<void(std::vector<Socket>&, Socket&)> callbackFunction) {
+void Connection::onTransmissionEnded(std::function<void(std::vector<Connection>&, Connection&)> callbackFunction) {
     onTransmissionEndedCallback = callbackFunction;
 }

@@ -6,10 +6,10 @@
 #include <unistd.h>     // close()
 #include <thread>
 
-#include "socket.h"
+#include "connection.h"
 
 
-void handleServerMessage(const char* message, const std::vector<Socket>& socketList, Socket& socket) {
+void handleServerMessage(const char* message, const std::vector<Connection>& socketList, Connection& socket) {
     const Message *decodedMessage = reinterpret_cast<const Message*>(message);
     std::cout << decodedMessage->user <<": " << decodedMessage->content << std::endl;
 };
@@ -78,13 +78,13 @@ int main(int argc, char *argv[]) {
 
     std::cout << "Starting chat as user \"" << user << "\". Connecting to server " << ip << ":" << port << "..." << std::endl;
 
-    Socket writer;
+    Connection writer;
 
     writer.openWriterConnection(ip, port);
     writer.onMessageReceived(handleServerMessage);
 
     auto listenToServer = [&writer] () {  
-        std::vector<Socket> test;
+        std::vector<Connection> test;
         writer.processIncomingMessages(test);
     };
 
