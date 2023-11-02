@@ -11,9 +11,9 @@ const char* serializeMessage(const Message& message) {
     return reinterpret_cast<const char*>(&message);
 }
 
-bool Connection::operator==(const Connection& comparedSocket) const {
-    return this->socketConnection == comparedSocket.socketConnection;
-}
+// bool Connection::operator==(const Connection& comparedSocket) const {
+//     return this->socketConnection == comparedSocket.socketConnection;
+// }
 
 Connection::Connection(){
     socketConnection = socket(AF_INET, SOCK_STREAM, 0);
@@ -108,7 +108,7 @@ void Connection::processIncomingMessages(ConnectionList& socketList) {
     }
 
     if (onTransmissionEndedCallback) {
-        onTransmissionEndedCallback(socketList, *this);
+        onTransmissionEndedCallback(socketList, this);
     }
 
     std::cout << "Client ended" << std::endl;
@@ -118,6 +118,6 @@ void Connection::onMessageReceived(const std::function<void(const char*, Connect
     onMessageReceivedCallback = callbackFunction;
 }
 
-void Connection::onTransmissionEnded(std::function<void(ConnectionList&, Connection&)> callbackFunction) {
+void Connection::onTransmissionEnded(std::function<void(ConnectionList&, Connection*)> callbackFunction) {
     onTransmissionEndedCallback = callbackFunction;
 }

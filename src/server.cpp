@@ -17,12 +17,18 @@ void handleClientMessage(const char* message, ConnectionList& socketList, Connec
     }
 }
 
-void handleTransmissionEnd(ConnectionList& socketList, Connection& socket) {
-    socket.closeConnection();
-    // auto it = std::find(socketList.begin(), socketList.end(), socket);
-    // if (it != socketList.end()) {
-    //     socketList.erase(it);
-    // }
+void handleTransmissionEnd(ConnectionList& socketList, Connection* socket) {
+    socket->closeConnection();
+
+    ConnectionList::iterator it = socketList.begin();
+    while (it->get() != socket) {
+        if (it == socketList.end()) {
+            std::cout << "Unexpected error when deleting connection." << std::endl;
+            return;
+        }
+        std::advance(it, 1);
+    }
+    socketList.erase(it);
 
     std::cout << "Client disconnected." << std::endl;
 }

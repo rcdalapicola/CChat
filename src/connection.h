@@ -30,13 +30,13 @@ class Connection {
         int sendMessage(const Message& message) const;
 
         void closeConnection();
-        bool operator==(const Connection& comparedSocket) const;
+        // bool operator==(const Connection& comparedSocket) const;
 
         void onMessageReceived(const std::function<void(const char*, ConnectionList&, Connection&)> callbackFunction);
-        void onTransmissionEnded(std::function<void(ConnectionList&, Connection&)> callbackFunction);
+        void onTransmissionEnded(std::function<void(ConnectionList&, Connection*)> callbackFunction);
 
         int socketConnection;
     private:
         std::function<void(const char*, ConnectionList&, Connection&)> onMessageReceivedCallback;
-        std::function<void(ConnectionList&, Connection&)> onTransmissionEndedCallback;
+        std::function<void(ConnectionList&, Connection*)> onTransmissionEndedCallback;
 };
