@@ -1,15 +1,18 @@
-#include <iostream>
-#include <sys/socket.h> // fsocket()
-#include <netinet/in.h> // ?
-#include <unistd.h>     // close()
+#include "server.h"
+
 #include "connection.h"
 #include "message.h"
+
+#include <cstring>
 #include <functional>
-#include <thread>
-#include <vector>
+#include <iostream>
 #include <memory>
-#include <string.h>
+#include <netinet/in.h>
 #include <sstream>
+#include <sys/socket.h>
+#include <thread>
+#include <unistd.h>     // close()
+#include <vector>
 
 
 void handleClientGreeting(const Message& message, ConnectionList& socketList, Connection& currentConnection) {
@@ -74,32 +77,32 @@ void handleTransmissionEnd(ConnectionList& socketList, Connection* socket) {
     }
 }
 
-int main() {
-    Connection sck;
-
-    if (sck.openListenerConnection(8080) == -1) {
-        std::cout << "Error binding server socket" << std::endl;
+int Server::setup(int port) {
+    if (listenerConnection.openListenerConnection(port) == -1) {
+        std::cout << "Error binding server socket to port " << port << "." << std::endl;
         return 1;
     }
-    std::cout << "Server connected." << std::endl;
+    std::cout << "Server connected to port " << port << "." << std::endl;
+    return 0;
+}
 
-    ConnectionList socketList;
+int Server::run() {
     while (true) {
-        socketList.emplace_back(sck.getIncomingConnection());
-        auto& listenerSocket = socketList.back();
+        clientConnections.emplace_back(listenerConnection.getIncomingConnection());
+        auto& clientConnection = clientConnections.back();
 
-        listenerSocket->onMessageReceived(handleClientMessage);
-        listenerSocket->onTransmissionEnded(handleTransmissionEnd);
-        listenerSocket->onGreetingReceived(handleClientGreeting);
+        clientConnection->onMessageReceived(handleClientMessage);
+        clientConnection->onTransmissionEnded(handleTransmissionEnd);
+        clientConnection->onGreetingReceived(handleClientGreeting);
 
-        auto processMessage = [&listenerSocket, &socketList] () {
-            listenerSocket->processIncomingMessages(socketList);
+        auto processMessage = [&clientConnection] (ConnectionList* clientConnections) {
+            clientConnection->processIncomingMessages(*clientConnections);
         };
 
-        std::thread clientThread(processMessage);
+        std::thread clientThread(processMessage, &clientConnections);
         clientThread.detach();
     }
 
-    close(sck.socketConnection);
+    close(listenerConnection.socketConnection);
     return 0;
 }

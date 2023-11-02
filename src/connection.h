@@ -1,17 +1,12 @@
-#include <netinet/in.h> // sockaddr_in
+#ifndef CONNECTION_H
+#define CONNECTION_H
+
+#include "message.h"
+
 #include <functional>
 #include <memory>
 #include <string>
 
-#include "message.h"
-
-// static const int userBufferSize = 64;
-// static const int contentBufferSize = 512 - userBufferSize;
-
-// typedef struct {
-//     char user[userBufferSize];
-//     char content[contentBufferSize];
-// } Message;
 
 class Connection;
 typedef std::vector<std::unique_ptr<Connection>> ConnectionList;
@@ -49,3 +44,5 @@ class Connection {
         std::function<void(ConnectionList&, Connection*)> onTransmissionEndedCallback;
         std::string mUserName;
 };
+
+#endif //CONNECTION_H

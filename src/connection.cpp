@@ -1,11 +1,10 @@
 #include "connection.h"
 
+#include <arpa/inet.h>    // inet_addr()
 #include <iostream>
-
-#include <unistd.h>     // close()
-#include <arpa/inet.h>
-#include <string.h>
-#include <memory>
+#include <netinet/in.h>   // sockaddr_in
+#include <cstring>
+#include <unistd.h>       // close()
 
 
 Connection::Connection(){

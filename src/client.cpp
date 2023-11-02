@@ -1,108 +1,47 @@
-#include <iostream>
-#include <cstring>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <unistd.h>     // close()
-#include <thread>
+#include "client.h"
 
 #include "connection.h"
+
+#include <iostream>
+#include <thread>
+#include <cstring>
 
 
 void handleServerMessage(const Message& message, const ConnectionList& socketList, Connection& socket) {
     if (strcmp(socket.getUserName(), message.getUser()) != 0) {
         std::cout << message.getUser() <<": " << message.getContent() << std::endl;
     }
-};
+}
 
 void handleConnectionTermination(ConnectionList& connectionList, Connection* currentConnection) {
     std::cout << "Connection with the server was interrupted." << std::endl;
 }
 
-int readInput(int argc, char *argv[], char*& userName, char*& ip, int& port) {
-    if (argc < 3) {
-        return -1;
-    }
+int Client::setup(const char* user, const char* ip, int port) {
+    if (connection.openWriterConnection(ip, port) != 0) {
+        return 1;
+    };
+    connection.onMessageReceived(handleServerMessage);
+    connection.onTransmissionEnded(handleConnectionTermination);
+    connection.userName(user);
 
-    int len = strlen(argv[1]);
-
-    userName = (char*)malloc(len + 1);
-    strcpy(userName, argv[1]);
-
-    static const int ipMaxSize = 15;
-    static const int portMaxSize = 5;
-    ip = (char*)malloc(ipMaxSize + 1);
-    char* portString = (char*)malloc(portMaxSize + 1);
-
-    fprintf(stderr, "%c", argv[2][0]);
-
-    int i = 0;
-    for (; i < ipMaxSize && argv[2][i] != ':' && argv[2][i] != '\0'; i++) {
-        ip[i] = argv[2][i];
-    }
-    if (argv[2][i] != ':') {
-        return -1;
-    }
-    ip[i] = '\0';
-    i++; //skip the ':' character
-    int j = 0;
-    for (; j < portMaxSize  && argv[2][i+j] != '\0'; j++) {
-        portString[j] = argv[2][i + j];
-    }
-    if (argv[2][i + j] != '\0') {
-        return -1;
-    }
-
-    portString[j] = '\0';
-    port = std::stoi(portString);
     return 0;
 }
 
-#include <iostream>
-#include <cstring>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <unistd.h>
-#include <thread>
-
-void receiveMessages(int clientSocket) {
-    char buffer[1024];
-    ssize_t bytesRead;
-
-    while ((bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0)) > 0) {
-        buffer[bytesRead] = '\0';
-        std::cout << "Server says: " << buffer << std::endl;
-    }
-}
-
-int main(int argc, char *argv[]) {    
-    char *user, *ip;
-    int port;
-
-    readInput(argc, argv, user, ip, port);
-
-    std::cout << "Starting chat as user \"" << user << "\". Connecting to server " << ip << ":" << port << "..." << std::endl;
-
-    Connection writer;
-
-    writer.openWriterConnection(ip, port);
-    writer.onMessageReceived(handleServerMessage);
-    writer.onTransmissionEnded(handleConnectionTermination);
-    writer.userName(user);
-
-    auto listenToServer = [&writer] () {  
+int Client::run() {
+    auto listenToServer = [] (Connection* connection) {  
         std::vector<std::unique_ptr<Connection>> test;
-        writer.processIncomingMessages(test);
+        connection->processIncomingMessages(test);
     };
 
-    std::thread t1(listenToServer);
+    std::thread t1(listenToServer, &connection);
     t1.detach();
 
-    writer.sendGreeting();
+    connection.sendGreeting();
 
     Message chatMessage;
-    chatMessage.user(user);
-    std::cout << "You can start chatting!" << std::endl;
+    chatMessage.user(connection.getUserName());
+    std::cout << "You are logged in as \"" << connection.getUserName() << "\". You can start chatting!" << std::endl;
     char buffer[MESSAGE_CONTENT_BUFFER_SIZE];
     while (1) {
         std::cin.getline(buffer, sizeof(buffer));
@@ -113,10 +52,10 @@ int main(int argc, char *argv[]) {
         }
 
         chatMessage.content(buffer);
-        writer.sendMessage(chatMessage);
+        connection.sendMessage(chatMessage);
     };
 
-    close(writer.socketConnection);
+    close(connection.socketConnection);
 
     return 0;
 }
