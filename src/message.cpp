@@ -5,8 +5,8 @@
 
 
 Message::Message() {
-    mUser[USER_BUFFER_SIZE - 1] = '\0';
-    mContent[CONTENT_BUFFER_SIZE - 1] = '\0';
+    mUser[MESSAGE_USER_BUFFER_SIZE - 1] = '\0';
+    mContent[MESSAGE_CONTENT_BUFFER_SIZE - 1] = '\0';
 }
 
 Message::Message(const char* serializedMessage) : Message() {
@@ -18,11 +18,11 @@ const char* Message::serializeMessage() const {
 }; 
 
 void Message::user(const char* user) {
-    strncpy(mUser, user, USER_BUFFER_SIZE - 1);
+    strncpy(mUser, user, MESSAGE_USER_BUFFER_SIZE - 1);
 }
 
 void Message::content(const char* content) {
-    strncpy(mContent, content, CONTENT_BUFFER_SIZE - 1);
+    strncpy(mContent, content, MESSAGE_CONTENT_BUFFER_SIZE - 1);
 }
 
 const char* Message::getUser() const {

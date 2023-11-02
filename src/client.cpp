@@ -8,14 +8,16 @@
 
 #include "connection.h"
 
-static char userName[USER_BUFFER_SIZE];
-
 
 void handleServerMessage(const Message& message, const ConnectionList& socketList, Connection& socket) {
-    if (strcmp(userName, message.getUser()) != 0) {
+    if (strcmp(socket.getUserName(), message.getUser()) != 0) {
         std::cout << message.getUser() <<": " << message.getContent() << std::endl;
     }
 };
+
+void handleConnectionTermination(ConnectionList& connectionList, Connection* currentConnection) {
+    std::cout << "Connection with the server was interrupted." << std::endl;
+}
 
 int readInput(int argc, char *argv[], char*& userName, char*& ip, int& port) {
     if (argc < 3) {
@@ -85,7 +87,8 @@ int main(int argc, char *argv[]) {
 
     writer.openWriterConnection(ip, port);
     writer.onMessageReceived(handleServerMessage);
-    strcpy(userName, user);
+    writer.onTransmissionEnded(handleConnectionTermination);
+    writer.userName(user);
 
     auto listenToServer = [&writer] () {  
         std::vector<std::unique_ptr<Connection>> test;
@@ -95,10 +98,12 @@ int main(int argc, char *argv[]) {
     std::thread t1(listenToServer);
     t1.detach();
 
+    writer.sendGreeting();
+
     Message chatMessage;
     chatMessage.user(user);
     std::cout << "You can start chatting!" << std::endl;
-    char buffer[CONTENT_BUFFER_SIZE];
+    char buffer[MESSAGE_CONTENT_BUFFER_SIZE];
     while (1) {
         std::cin.getline(buffer, sizeof(buffer));
 

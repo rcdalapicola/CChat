@@ -1,8 +1,9 @@
 #ifndef MESSAGE_H
 #define MESSAGE_H
 
-constexpr int USER_BUFFER_SIZE = 64;
-constexpr int CONTENT_BUFFER_SIZE = 512 - USER_BUFFER_SIZE;
+constexpr int MESSAGE_USER_BUFFER_SIZE = 64;
+constexpr int MESSAGE_CONTENT_BUFFER_SIZE = 512 - MESSAGE_USER_BUFFER_SIZE;
+constexpr int MESSAGE_TOTAL_BUFFER_SIZE = MESSAGE_USER_BUFFER_SIZE + MESSAGE_CONTENT_BUFFER_SIZE;
 
 class Message {
 public:
@@ -19,8 +20,8 @@ public:
     const char* getContent() const;
 
 private:
-    char mUser[USER_BUFFER_SIZE];
-    char mContent[CONTENT_BUFFER_SIZE];
+    char mUser[MESSAGE_USER_BUFFER_SIZE];
+    char mContent[MESSAGE_CONTENT_BUFFER_SIZE];
 };
 
 #endif //MESSAGE_H

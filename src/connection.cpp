@@ -38,8 +38,24 @@ int Connection::openWriterConnection(const char *ip, int port) {
     return 0;
 }
 
+int Connection::sendGreeting() {
+    Message greeting;
+    if (mUserName.empty()) {
+        std::cout << "Cannot send greetings before defining userName." << std::endl;
+        return -1;
+    }
+    greeting.user(mUserName.c_str());
+    greeting.content("");
+    return send(socketConnection, greeting.serializeMessage(), MESSAGE_TOTAL_BUFFER_SIZE, 0);
+};
+
 int Connection::sendMessage(const Message& message) const {
-    return send(socketConnection, message.serializeMessage(), 512, 0);
+    const auto content = message.getContent(); 
+    if (content[0] == '\0') {
+        std::cout << "Messages with empty content cannot be sent." << std::endl;
+        return -1;
+    }
+    return send(socketConnection, message.serializeMessage(), MESSAGE_TOTAL_BUFFER_SIZE, 0);
 }
 
 int Connection::openListenerConnection(const char *ip, int port) {
@@ -79,8 +95,6 @@ Connection* Connection::getIncomingConnection() {
         return new Connection(-1);
     }
 
-    std::cout << "Client connected to server!" << std::endl;
-
     return new Connection(clientSocket);
 }
 
@@ -88,16 +102,27 @@ void Connection::closeConnection() {
     close(socketConnection);
 }
 
+const char* Connection::getUserName() const {
+    return mUserName.c_str();
+}
+
+void Connection::userName(const char* userName) {
+    mUserName = std::string(userName);
+}
+
 void Connection::processIncomingMessages(ConnectionList& socketList) {
     ssize_t bytesRead;
-    static const int bufferSize = 512;
-    char buffer[bufferSize];
+    char buffer[MESSAGE_TOTAL_BUFFER_SIZE];
     auto connection = socketConnection;
 
-    while ((bytesRead = recv(connection, buffer, bufferSize, 0)) > 0) {
+    while ((bytesRead = recv(connection, buffer, MESSAGE_TOTAL_BUFFER_SIZE, 0)) > 0) {
         buffer[bytesRead] = '\0';
-        if (onMessageReceivedCallback) {
-            Message incomingMessage(buffer);
+        Message incomingMessage(buffer);
+        auto contentLength = strlen(incomingMessage.getContent());
+        if (contentLength == 0 && onGreetingReceivedCallback) {
+            onGreetingReceivedCallback(incomingMessage, socketList, *this);
+        }
+        else if (contentLength != 0 && onMessageReceivedCallback) {
             onMessageReceivedCallback(incomingMessage, socketList, *this);
         }
     }
@@ -105,12 +130,14 @@ void Connection::processIncomingMessages(ConnectionList& socketList) {
     if (onTransmissionEndedCallback) {
         onTransmissionEndedCallback(socketList, this);
     }
-
-    std::cout << "Client ended" << std::endl;
 }
 
 void Connection::onMessageReceived(const std::function<void(const Message&, ConnectionList&, Connection&)> callbackFunction) {
     onMessageReceivedCallback = callbackFunction;
+}
+
+void Connection::onGreetingReceived(const std::function<void(const Message&, ConnectionList&, Connection&)> callbackFunction) {
+    onGreetingReceivedCallback = callbackFunction;
 }
 
 void Connection::onTransmissionEnded(std::function<void(ConnectionList&, Connection*)> callbackFunction) {
