@@ -73,7 +73,7 @@ int Connection::openListenerConnection(int port) {
     return openListenerConnection(nullptr, port); // Listen on all available interfaces
 }
 
-Connection Connection::getIncomingConnection() {
+Connection* Connection::getIncomingConnection() {
     int clientSocket;
     struct sockaddr_in clientAddress;
     socklen_t clientAddressLength = sizeof(clientAddress);
@@ -82,19 +82,19 @@ Connection Connection::getIncomingConnection() {
     if (clientSocket == -1) {
         std::cout << "Error accepting client connection" << std::endl;
         close(socketConnection);
-        return Connection(-1);
+        return new Connection(-1);
     }
 
     std::cout << "Client connected to server!" << std::endl;
 
-    return Connection(clientSocket);
+    return new Connection(clientSocket);
 }
 
 void Connection::closeConnection() {
     close(socketConnection);
 }
 
-void Connection::processIncomingMessages(std::vector<Connection>& socketList) {
+void Connection::processIncomingMessages(ConnectionList& socketList) {
     ssize_t bytesRead;
     static const int bufferSize = 512;
     char buffer[bufferSize];
@@ -114,10 +114,10 @@ void Connection::processIncomingMessages(std::vector<Connection>& socketList) {
     std::cout << "Client ended" << std::endl;
 }
 
-void Connection::onMessageReceived(const std::function<void(const char*, std::vector<Connection>&, Connection&)> callbackFunction) {
+void Connection::onMessageReceived(const std::function<void(const char*, ConnectionList&, Connection&)> callbackFunction) {
     onMessageReceivedCallback = callbackFunction;
 }
 
-void Connection::onTransmissionEnded(std::function<void(std::vector<Connection>&, Connection&)> callbackFunction) {
+void Connection::onTransmissionEnded(std::function<void(ConnectionList&, Connection&)> callbackFunction) {
     onTransmissionEndedCallback = callbackFunction;
 }

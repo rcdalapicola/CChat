@@ -2,8 +2,8 @@ CC = g++
 OBJS_SERVER = server.o connection.o
 OBJS_CLIENT = client.o connection.o
 DEBUG_FLAG = -DNDEBUG
-COMP_FLAG = -std=c++20
-#COMP_FLAG = -std=c++11 -Wall -pedantic-errors -Werror
+# COMP_FLAG = -std=c++20
+COMP_FLAG = -std=c++20 -Wall -pedantic-errors -Werror
 
 BUILD_PATH = build/
 

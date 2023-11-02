@@ -9,7 +9,7 @@
 #include "connection.h"
 
 
-void handleServerMessage(const char* message, const std::vector<Connection>& socketList, Connection& socket) {
+void handleServerMessage(const char* message, const ConnectionList& socketList, Connection& socket) {
     const Message *decodedMessage = reinterpret_cast<const Message*>(message);
     std::cout << decodedMessage->user <<": " << decodedMessage->content << std::endl;
 };
@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
     writer.onMessageReceived(handleServerMessage);
 
     auto listenToServer = [&writer] () {  
-        std::vector<Connection> test;
+        std::vector<std::unique_ptr<Connection>> test;
         writer.processIncomingMessages(test);
     };
 

@@ -6,22 +6,23 @@
 #include <functional>
 #include <thread>
 #include <vector>
+#include <memory>
 
 
-void handleClientMessage(const char* message, std::vector<Connection>& socketList, Connection& socket) {
+void handleClientMessage(const char* message, ConnectionList& socketList, Connection& socket) {
     const Message *decodedMessage = reinterpret_cast<const Message*>(message);
     std::cout << decodedMessage->user <<": " << decodedMessage->content << std::endl;
     for (const auto& socket: socketList) {
-        socket.sendMessage(*decodedMessage);
+        socket->sendMessage(*decodedMessage);
     }
 }
 
-void handleTransmissionEnd(std::vector<Connection>& socketList, Connection& socket) {
+void handleTransmissionEnd(ConnectionList& socketList, Connection& socket) {
     socket.closeConnection();
-    auto it = std::find(socketList.begin(), socketList.end(), socket);
-    if (it != socketList.end()) {
-        socketList.erase(it);
-    }
+    // auto it = std::find(socketList.begin(), socketList.end(), socket);
+    // if (it != socketList.end()) {
+    //     socketList.erase(it);
+    // }
 
     std::cout << "Client disconnected." << std::endl;
 }
@@ -35,19 +36,18 @@ int main() {
     }
     std::cout << "Server connected." << std::endl;
 
-    std::vector<Connection> socketList;
+    ConnectionList socketList;
     while (true) {
         socketList.emplace_back(sck.getIncomingConnection());
         auto& listenerSocket = socketList.back();
 
         std::cout << "Client connected!" << std::endl;
 
-        listenerSocket.onMessageReceived(handleClientMessage);
-        listenerSocket.onTransmissionEnded(handleTransmissionEnd);
+        listenerSocket->onMessageReceived(handleClientMessage);
+        listenerSocket->onTransmissionEnded(handleTransmissionEnd);
 
         auto processMessage = [&listenerSocket, &socketList] () {
-            Connection tst(listenerSocket);
-            tst.processIncomingMessages(socketList);
+            listenerSocket->processIncomingMessages(socketList);
         };
 
         std::thread clientThread(processMessage);

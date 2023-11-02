@@ -10,6 +10,9 @@ typedef struct {
     char content[contentBufferSize];
 } Message;
 
+class Connection;
+typedef std::vector<std::unique_ptr<Connection>> ConnectionList;
+
 class Connection {
     public:
         Connection();
@@ -21,19 +24,19 @@ class Connection {
 
         int openWriterConnection(const char *ip, int port);
 
-        Connection getIncomingConnection(); //return socket for incoming connection
+        Connection* getIncomingConnection(); //return socket for incoming connection
 
-        void processIncomingMessages(std::vector<Connection>& socketList);
+        void processIncomingMessages(ConnectionList& socketList);
         int sendMessage(const Message& message) const;
 
         void closeConnection();
         bool operator==(const Connection& comparedSocket) const;
 
-        void onMessageReceived(const std::function<void(const char*, std::vector<Connection>&, Connection&)> callbackFunction);
-        void onTransmissionEnded(std::function<void(std::vector<Connection>&, Connection&)> callbackFunction);
+        void onMessageReceived(const std::function<void(const char*, ConnectionList&, Connection&)> callbackFunction);
+        void onTransmissionEnded(std::function<void(ConnectionList&, Connection&)> callbackFunction);
 
         int socketConnection;
     private:
-        std::function<void(const char*, std::vector<Connection>&, Connection&)> onMessageReceivedCallback;
-        std::function<void(std::vector<Connection>&, Connection&)> onTransmissionEndedCallback;
+        std::function<void(const char*, ConnectionList&, Connection&)> onMessageReceivedCallback;
+        std::function<void(ConnectionList&, Connection&)> onTransmissionEndedCallback;
 };
