@@ -8,10 +8,13 @@
 
 #include "connection.h"
 
+static char userName[USER_BUFFER_SIZE];
 
-void handleServerMessage(const char* message, const ConnectionList& socketList, Connection& socket) {
-    const Message *decodedMessage = reinterpret_cast<const Message*>(message);
-    std::cout << decodedMessage->user <<": " << decodedMessage->content << std::endl;
+
+void handleServerMessage(const Message& message, const ConnectionList& socketList, Connection& socket) {
+    if (strcmp(userName, message.getUser()) != 0) {
+        std::cout << message.getUser() <<": " << message.getContent() << std::endl;
+    }
 };
 
 int readInput(int argc, char *argv[], char*& userName, char*& ip, int& port) {
@@ -82,6 +85,7 @@ int main(int argc, char *argv[]) {
 
     writer.openWriterConnection(ip, port);
     writer.onMessageReceived(handleServerMessage);
+    strcpy(userName, user);
 
     auto listenToServer = [&writer] () {  
         std::vector<std::unique_ptr<Connection>> test;
@@ -92,17 +96,18 @@ int main(int argc, char *argv[]) {
     t1.detach();
 
     Message chatMessage;
-    chatMessage.content[contentBufferSize - 1] = '\0';
-    strncpy(chatMessage.user, user, userBufferSize);
+    chatMessage.user(user);
     std::cout << "You can start chatting!" << std::endl;
+    char buffer[CONTENT_BUFFER_SIZE];
     while (1) {
-        std::cin.getline(chatMessage.content, contentBufferSize - 1);
+        std::cin.getline(buffer, sizeof(buffer));
 
-        if (chatMessage.content[0] == '\0')
+        if (buffer[0] == '\0')
         {
             break;
         }
 
+        chatMessage.content(buffer);
         writer.sendMessage(chatMessage);
     };
 

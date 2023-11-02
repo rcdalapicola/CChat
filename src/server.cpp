@@ -3,17 +3,17 @@
 #include <netinet/in.h> // ?
 #include <unistd.h>     // close()
 #include "connection.h"
+#include "message.h"
 #include <functional>
 #include <thread>
 #include <vector>
 #include <memory>
 
 
-void handleClientMessage(const char* message, ConnectionList& socketList, Connection& socket) {
-    const Message *decodedMessage = reinterpret_cast<const Message*>(message);
-    std::cout << decodedMessage->user <<": " << decodedMessage->content << std::endl;
+void handleClientMessage(const Message& message, ConnectionList& socketList, Connection& socket) {
+    std::cout << message.getUser() <<": " << message.getContent() << std::endl;
     for (const auto& socket: socketList) {
-        socket->sendMessage(*decodedMessage);
+        socket->sendMessage(message);
     }
 }
 
@@ -36,7 +36,7 @@ void handleTransmissionEnd(ConnectionList& socketList, Connection* socket) {
 int main() {
     Connection sck;
 
-    if (sck.openListenerConnection(8081) == -1) {
+    if (sck.openListenerConnection(8080) == -1) {
         std::cout << "Error binding server socket" << std::endl;
         return 1;
     }

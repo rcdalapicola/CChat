@@ -7,13 +7,6 @@
 #include <string.h>
 #include <memory>
 
-const char* serializeMessage(const Message& message) {
-    return reinterpret_cast<const char*>(&message);
-}
-
-// bool Connection::operator==(const Connection& comparedSocket) const {
-//     return this->socketConnection == comparedSocket.socketConnection;
-// }
 
 Connection::Connection(){
     socketConnection = socket(AF_INET, SOCK_STREAM, 0);
@@ -22,9 +15,10 @@ Connection::Connection(){
 Connection::Connection(int socket_p) : socketConnection(socket_p) {
 }
 
-Connection::Connection(const Connection& socket_p) : socketConnection(socket_p.socketConnection),
-                                         onMessageReceivedCallback(socket_p.onMessageReceivedCallback),
-                                         onTransmissionEndedCallback(socket_p.onTransmissionEndedCallback)
+Connection::Connection(const Connection& socket_p) : 
+                socketConnection(socket_p.socketConnection),
+                onMessageReceivedCallback(socket_p.onMessageReceivedCallback),
+                onTransmissionEndedCallback(socket_p.onTransmissionEndedCallback)
 {
 
 }
@@ -45,7 +39,7 @@ int Connection::openWriterConnection(const char *ip, int port) {
 }
 
 int Connection::sendMessage(const Message& message) const {
-    return send(socketConnection, serializeMessage(message), 512, 0);
+    return send(socketConnection, message.serializeMessage(), 512, 0);
 }
 
 int Connection::openListenerConnection(const char *ip, int port) {
@@ -103,7 +97,8 @@ void Connection::processIncomingMessages(ConnectionList& socketList) {
     while ((bytesRead = recv(connection, buffer, bufferSize, 0)) > 0) {
         buffer[bytesRead] = '\0';
         if (onMessageReceivedCallback) {
-            onMessageReceivedCallback(buffer, socketList, *this);
+            Message incomingMessage(buffer);
+            onMessageReceivedCallback(incomingMessage, socketList, *this);
         }
     }
 
@@ -114,7 +109,7 @@ void Connection::processIncomingMessages(ConnectionList& socketList) {
     std::cout << "Client ended" << std::endl;
 }
 
-void Connection::onMessageReceived(const std::function<void(const char*, ConnectionList&, Connection&)> callbackFunction) {
+void Connection::onMessageReceived(const std::function<void(const Message&, ConnectionList&, Connection&)> callbackFunction) {
     onMessageReceivedCallback = callbackFunction;
 }
 

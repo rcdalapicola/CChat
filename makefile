@@ -1,6 +1,6 @@
 CC = g++
-OBJS_SERVER = server.o connection.o
-OBJS_CLIENT = client.o connection.o
+OBJS_SERVER = server.o connection.o message.o
+OBJS_CLIENT = client.o connection.o message.o
 DEBUG_FLAG = -DNDEBUG
 # COMP_FLAG = -std=c++20
 COMP_FLAG = -std=c++20 -Wall -pedantic-errors -Werror
@@ -30,3 +30,6 @@ client.o: src/client.cpp
 
 connection.o: src/connection.cpp
 	$(CC) -c $(DEBUG_FLAG) $(COMP_FLAG) src/connection.cpp -o build/connection.o
+
+message.o: src/message.cpp
+	$(CC) -c $(DEBUG_FLAG) $(COMP_FLAG) src/message.cpp -o build/message.o

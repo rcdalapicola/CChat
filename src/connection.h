@@ -2,13 +2,15 @@
 #include <functional>
 #include <memory>
 
-static const int userBufferSize = 64;
-static const int contentBufferSize = 512 - userBufferSize;
+#include "message.h"
 
-typedef struct {
-    char user[userBufferSize];
-    char content[contentBufferSize];
-} Message;
+// static const int userBufferSize = 64;
+// static const int contentBufferSize = 512 - userBufferSize;
+
+// typedef struct {
+//     char user[userBufferSize];
+//     char content[contentBufferSize];
+// } Message;
 
 class Connection;
 typedef std::vector<std::unique_ptr<Connection>> ConnectionList;
@@ -30,13 +32,12 @@ class Connection {
         int sendMessage(const Message& message) const;
 
         void closeConnection();
-        // bool operator==(const Connection& comparedSocket) const;
 
-        void onMessageReceived(const std::function<void(const char*, ConnectionList&, Connection&)> callbackFunction);
+        void onMessageReceived(const std::function<void(const Message&, ConnectionList&, Connection&)> callbackFunction);
         void onTransmissionEnded(std::function<void(ConnectionList&, Connection*)> callbackFunction);
 
         int socketConnection;
     private:
-        std::function<void(const char*, ConnectionList&, Connection&)> onMessageReceivedCallback;
+        std::function<void(const Message&, ConnectionList&, Connection&)> onMessageReceivedCallback;
         std::function<void(ConnectionList&, Connection*)> onTransmissionEndedCallback;
 };
