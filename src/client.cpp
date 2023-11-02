@@ -7,15 +7,8 @@
 #include <cstring>
 
 
-void handleServerMessage(const Message& message, const ConnectionList& socketList, Connection& socket) {
-    if (strcmp(socket.getUserName(), message.getUser()) != 0) {
-        std::cout << message.getUser() <<": " << message.getContent() << std::endl;
-    }
-}
-
-void handleConnectionTermination(ConnectionList& connectionList, Connection* currentConnection) {
-    std::cout << "Connection with the server was interrupted." << std::endl;
-}
+void handleServerMessage(const Message& message, const ConnectionList& socketList, Connection* socket);
+void handleConnectionTermination(ConnectionList& connectionList, Connection* currentConnection);
 
 int Client::setup(const char* user, const char* ip, int port) {
     if (connection.openWriterConnection(ip, port) != 0) {
@@ -34,14 +27,16 @@ int Client::run() {
         connection->processIncomingMessages(test);
     };
 
-    std::thread t1(listenToServer, &connection);
-    t1.detach();
+    std::thread listenerThread(listenToServer, &connection);
+    listenerThread.detach();
 
     connection.sendGreeting();
 
     Message chatMessage;
     chatMessage.user(connection.getUserName());
-    std::cout << "You are logged in as \"" << connection.getUserName() << "\". You can start chatting!" << std::endl;
+    std::cout << "You are logged in as \"" << connection.getUserName() \
+              <<  "\". You can start chatting!" << std::endl;
+
     char buffer[MESSAGE_CONTENT_BUFFER_SIZE];
     while (1) {
         std::cin.getline(buffer, sizeof(buffer));
@@ -55,7 +50,17 @@ int Client::run() {
         connection.sendMessage(chatMessage);
     };
 
-    close(connection.socketConnection);
+    connection.closeConnection();
 
     return 0;
+}
+
+void handleServerMessage(const Message& message, const ConnectionList& socketList, Connection* currentConnection) {
+    if (strcmp(currentConnection->getUserName(), message.getUser()) != 0) {
+        std::cout << message.getUser() <<": " << message.getContent() << std::endl;
+    }
+}
+
+void handleConnectionTermination(ConnectionList& connectionList, Connection* currentConnection) {
+    std::cout << "Connection with the server was interrupted." << std::endl;
 }

@@ -119,10 +119,10 @@ void Connection::processIncomingMessages(ConnectionList& socketList) {
         Message incomingMessage(buffer);
         auto contentLength = strlen(incomingMessage.getContent());
         if (contentLength == 0 && onGreetingReceivedCallback) {
-            onGreetingReceivedCallback(incomingMessage, socketList, *this);
+            onGreetingReceivedCallback(incomingMessage, socketList, this);
         }
         else if (contentLength != 0 && onMessageReceivedCallback) {
-            onMessageReceivedCallback(incomingMessage, socketList, *this);
+            onMessageReceivedCallback(incomingMessage, socketList, this);
         }
     }
 
@@ -131,11 +131,11 @@ void Connection::processIncomingMessages(ConnectionList& socketList) {
     }
 }
 
-void Connection::onMessageReceived(const std::function<void(const Message&, ConnectionList&, Connection&)> callbackFunction) {
+void Connection::onMessageReceived(const std::function<void(const Message&, ConnectionList&, Connection*)> callbackFunction) {
     onMessageReceivedCallback = callbackFunction;
 }
 
-void Connection::onGreetingReceived(const std::function<void(const Message&, ConnectionList&, Connection&)> callbackFunction) {
+void Connection::onGreetingReceived(const std::function<void(const Message&, ConnectionList&, Connection*)> callbackFunction) {
     onGreetingReceivedCallback = callbackFunction;
 }
 

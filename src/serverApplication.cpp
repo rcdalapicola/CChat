@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+
 int readInput(int argc, char *argv[], int& port);
 
 int main(int argc, char *argv[]) {
@@ -17,7 +18,6 @@ int main(int argc, char *argv[]) {
 
     return runStatus;
 }
-
 
 int readInput(int argc, char *argv[], int& port) {
     static const int defaultPort = 8080;

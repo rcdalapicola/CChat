@@ -30,8 +30,8 @@ class Connection {
 
         void closeConnection();
 
-        void onMessageReceived(const std::function<void(const Message&, ConnectionList&, Connection&)> callbackFunction);
-        void onGreetingReceived(const std::function<void(const Message&, ConnectionList&, Connection&)> callbackFunction);
+        void onMessageReceived(const std::function<void(const Message&, ConnectionList&, Connection*)> callbackFunction);
+        void onGreetingReceived(const std::function<void(const Message&, ConnectionList&, Connection*)> callbackFunction);
         void onTransmissionEnded(std::function<void(ConnectionList&, Connection*)> callbackFunction);
 
         const char* getUserName() const;
@@ -39,8 +39,8 @@ class Connection {
 
         int socketConnection;
     private:
-        std::function<void(const Message&, ConnectionList&, Connection&)> onMessageReceivedCallback;
-        std::function<void(const Message&, ConnectionList&, Connection&)> onGreetingReceivedCallback;
+        std::function<void(const Message&, ConnectionList&, Connection*)> onMessageReceivedCallback;
+        std::function<void(const Message&, ConnectionList&, Connection*)> onGreetingReceivedCallback;
         std::function<void(ConnectionList&, Connection*)> onTransmissionEndedCallback;
         std::string mUserName;
 };
