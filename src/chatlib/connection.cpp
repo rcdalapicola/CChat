@@ -31,7 +31,7 @@ int Connection::openWriterConnection(const char *ip, int port) {
     serverAddress.sin_addr.s_addr = inet_addr(ip);
 
     if (connect(socketConnection, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) == -1) {
-        std::cout << "Error connecting to the server" << std::endl;
+        std::cout << "Error connecting to the server." << std::endl;
         close(socketConnection);
         return 1;
     }
@@ -66,15 +66,13 @@ int Connection::openListenerConnection(const char *ip, int port) {
     serverAddress.sin_addr.s_addr = ip ? inet_addr(ip) : INADDR_ANY;
 
     if (bind(socketConnection, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) == -1) {
-        std::cout << "Error binding server socket" << std::endl;
         close(socketConnection);
         return 1;
     }
 
     if (listen(socketConnection, 5) == -1) {
-        std::cout << "Error listening for connections" << std::endl;
         close(socketConnection);
-        return 1;
+        return 2;
     }
 
     return 0;

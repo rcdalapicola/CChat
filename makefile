@@ -34,16 +34,16 @@ serverApplication.o: src/serverApplication.cpp
 clientApplication.o: src/clientApplication.cpp
 	$(CC) -c $(DEBUG_FLAG) $(COMP_FLAG) src/clientApplication.cpp -o build/clientApplication.o
 
-server.o: src/server.cpp
-	$(CC) -c $(DEBUG_FLAG) $(COMP_FLAG) src/server.cpp -o build/server.o
+server.o: src/chatlib/server.cpp
+	$(CC) -c $(DEBUG_FLAG) $(COMP_FLAG) src/chatlib/server.cpp -o build/server.o
 
-client.o: src/client.cpp
-	$(CC) -c $(DEBUG_FLAG) $(COMP_FLAG) src/client.cpp -o build/client.o
+client.o: src/chatlib/client.cpp
+	$(CC) -c $(DEBUG_FLAG) $(COMP_FLAG) src/chatlib/client.cpp -o build/client.o
 
-connection.o: src/connection.cpp
-	$(CC) -c $(DEBUG_FLAG) $(COMP_FLAG) src/connection.cpp -o build/connection.o
+connection.o: src/chatlib/connection.cpp
+	$(CC) -c $(DEBUG_FLAG) $(COMP_FLAG) src/chatlib/connection.cpp -o build/connection.o
 
-message.o: src/message.cpp
-	$(CC) -c $(DEBUG_FLAG) $(COMP_FLAG) src/message.cpp -o build/message.o
+message.o: src/chatlib/message.cpp
+	$(CC) -c $(DEBUG_FLAG) $(COMP_FLAG) src/chatlib/message.cpp -o build/message.o
 
 $(info $(shell mkdir -p $(BUILD_PATH)))

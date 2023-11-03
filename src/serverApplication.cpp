@@ -1,4 +1,4 @@
-#include "server.h"
+#include "chatlib/server.h"
 
 #include <iostream>
 
@@ -12,7 +12,9 @@ int main(int argc, char *argv[]) {
     }
 
     Server server;
-    server.setup(port);
+    if (server.setup(port) != 0) {
+        exit(-1);
+    };
 
     auto runStatus = server.run();
 

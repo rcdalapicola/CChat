@@ -1,4 +1,4 @@
-#include "client.h"
+#include "chatlib/client.h"
 
 #include <cstring>
 
@@ -13,7 +13,9 @@ int main(int argc, char *argv[]) {
     readInput(argc, argv, userName, ip, port);
 
     Client client;
-    client.setup(userName, ip, port);
+    if (client.setup(userName, ip, port) != 0) {
+        exit(-1);
+    }
     auto runStatus = client.run();
 
     return runStatus;

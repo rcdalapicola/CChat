@@ -24,7 +24,7 @@ void handleTransmissionEnd(ConnectionList* socketList, Connection* socket);
 
 /* ----------------------------- Implement Server functions ------------------------------------ */
 int Server::setup(int port) {
-    if (listenerConnection.openListenerConnection(port) == -1) {
+    if (listenerConnection.openListenerConnection(port) != 0) {
         std::cout << "Error binding server socket to port " << port << "." << std::endl;
         return 1;
     }
