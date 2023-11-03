@@ -5,10 +5,20 @@ DEBUG_FLAG = -DNDEBUG
 COMP_FLAG = -std=c++20 -Wall -pedantic-errors -Werror
 
 BUILD_PATH = build/
+RELEASE_PATH = release/
 
 OBJS_SERVER_TARGET = $(addprefix $(BUILD_PATH), $(OBJS_SERVER))
 OBJS_CLIENT_TARGET = $(addprefix $(BUILD_PATH), $(OBJS_CLIENT))
 
+
+.PHONY: clean
+
+release: build
+	$(info $(shell mkdir -p $(RELEASE_PATH)))
+	cp -f $(BUILD_PATH)client $(RELEASE_PATH)'chat-cli'; cp -f $(BUILD_PATH)server $(RELEASE_PATH)'chat-ser';
+
+clean:
+	rm -rf build release
 
 build: build_server build_client
 
@@ -35,3 +45,5 @@ connection.o: src/connection.cpp
 
 message.o: src/message.cpp
 	$(CC) -c $(DEBUG_FLAG) $(COMP_FLAG) src/message.cpp -o build/message.o
+
+$(info $(shell mkdir -p $(BUILD_PATH)))
