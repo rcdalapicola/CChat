@@ -39,7 +39,7 @@ Once the server is running, you can start as many clients as wanted. The client 
 
 Example:
 ```bash
-release/chat-cli TestUser42 127.0.0.1::8080
+release/chat-cli TestUser42 127.0.0.1:8080
 ```
 
 After the user is connected, you can start sending messages, and the server will forward them to the other users.
