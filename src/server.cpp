@@ -49,7 +49,8 @@ int Server::run() {
         clientThread.detach();
     }
 
-    close(listenerConnection.socketConnection);
+    listenerConnection.closeConnection();
+
     return 0;
 }
 

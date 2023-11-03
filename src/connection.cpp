@@ -7,19 +7,21 @@
 #include <unistd.h>       // close()
 
 
-Connection::Connection(){
-    socketConnection = socket(AF_INET, SOCK_STREAM, 0);
-}
-
-Connection::Connection(int socket_p) : socketConnection(socket_p) {
-}
-
-Connection::Connection(const Connection& socket_p) : 
-                socketConnection(socket_p.socketConnection),
-                onMessageReceivedCallback(socket_p.onMessageReceivedCallback),
-                onTransmissionEndedCallback(socket_p.onTransmissionEndedCallback)
+Connection::Connection() : 
+                socketConnection(socket(AF_INET, SOCK_STREAM, 0))
 {
+}
 
+Connection::Connection(int socket) : 
+                socketConnection(socket)
+{
+}
+
+Connection::Connection(const Connection& connection) : 
+                socketConnection(connection.socketConnection),
+                onMessageReceivedCallback(connection.onMessageReceivedCallback),
+                onTransmissionEndedCallback(connection.onTransmissionEndedCallback)
+{
 }
 
 int Connection::openWriterConnection(const char *ip, int port) {
@@ -109,7 +111,7 @@ void Connection::userName(const char* userName) {
     mUserName = std::string(userName);
 }
 
-void Connection::processIncomingMessages(ConnectionList& socketList) {
+void Connection::processIncomingMessages(ConnectionList& connectionList) {
     ssize_t bytesRead;
     char buffer[MESSAGE_TOTAL_BUFFER_SIZE];
     auto connection = socketConnection;
@@ -119,15 +121,15 @@ void Connection::processIncomingMessages(ConnectionList& socketList) {
         Message incomingMessage(buffer);
         auto contentLength = strlen(incomingMessage.getContent());
         if (contentLength == 0 && onGreetingReceivedCallback) {
-            onGreetingReceivedCallback(incomingMessage, socketList, this);
+            onGreetingReceivedCallback(incomingMessage, connectionList, this);
         }
         else if (contentLength != 0 && onMessageReceivedCallback) {
-            onMessageReceivedCallback(incomingMessage, socketList, this);
+            onMessageReceivedCallback(incomingMessage, connectionList, this);
         }
     }
 
     if (onTransmissionEndedCallback) {
-        onTransmissionEndedCallback(socketList, this);
+        onTransmissionEndedCallback(connectionList, this);
     }
 }
 

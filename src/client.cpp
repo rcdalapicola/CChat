@@ -7,9 +7,11 @@
 #include <cstring>
 
 
+/* -------------------------- Forward declare callback functions ------------------------------- */
 void handleServerMessage(const Message& message, const ConnectionList& socketList, Connection* socket);
 void handleConnectionTermination(ConnectionList& connectionList, Connection* currentConnection);
 
+/* ----------------------------- Implement Client functions ------------------------------------ */
 int Client::setup(const char* user, const char* ip, int port) {
     if (connection.openWriterConnection(ip, port) != 0) {
         return 1;
@@ -55,7 +57,10 @@ int Client::run() {
     return 0;
 }
 
-void handleServerMessage(const Message& message, const ConnectionList& socketList, Connection* currentConnection) {
+/* ----------------------------- Implement callback functions ---------------------------------- */
+void handleServerMessage(const Message& message,
+                         const ConnectionList& socketList,
+                         Connection* currentConnection) {
     if (strcmp(currentConnection->getUserName(), message.getUser()) != 0) {
         std::cout << message.getUser() <<": " << message.getContent() << std::endl;
     }
