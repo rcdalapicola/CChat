@@ -71,7 +71,7 @@ public:
      * 
      * @param connectionList list of all openned connections.
      */
-    void processIncomingMessages(ConnectionList& connectionList);
+    void processIncomingMessages(ConnectionList* connectionList);
 
     /**
      * @brief Sends a greeting message. This should be sent before any other message, and only once.
@@ -98,19 +98,19 @@ public:
      * 
      * @param callbackFunction 
      */
-    void onMessageReceived(const std::function<void(const Message&, ConnectionList&, Connection*)> callbackFunction);
+    void onMessageReceived(const std::function<void(const Message&, ConnectionList*, Connection*)> callbackFunction);
     /**
      * @brief Callback function that will be called if a greeting message is received.
      * 
      * @param callbackFunction 
      */
-    void onGreetingReceived(const std::function<void(const Message&, ConnectionList&, Connection*)> callbackFunction);
+    void onGreetingReceived(const std::function<void(const Message&, ConnectionList*, Connection*)> callbackFunction);
     /**
      * @brief Callback function that will be called when the connection with peer ends.
      * 
      * @param callbackFunction 
      */
-    void onTransmissionEnded(std::function<void(ConnectionList&, Connection*)> callbackFunction);
+    void onTransmissionEnded(std::function<void(ConnectionList*, Connection*)> callbackFunction);
 
     /**
      * @brief Gets the UserName of this connection.
@@ -128,9 +128,9 @@ public:
 private:
     const int socketConnection;
 
-    std::function<void(const Message&, ConnectionList&, Connection*)> onMessageReceivedCallback;
-    std::function<void(const Message&, ConnectionList&, Connection*)> onGreetingReceivedCallback;
-    std::function<void(ConnectionList&, Connection*)> onTransmissionEndedCallback;
+    std::function<void(const Message&, ConnectionList*, Connection*)> onMessageReceivedCallback;
+    std::function<void(const Message&, ConnectionList*, Connection*)> onGreetingReceivedCallback;
+    std::function<void(ConnectionList*, Connection*)> onTransmissionEndedCallback;
     std::string mUserName;
 };
 

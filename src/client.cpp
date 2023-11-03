@@ -8,8 +8,8 @@
 
 
 /* -------------------------- Forward declare callback functions ------------------------------- */
-void handleServerMessage(const Message& message, const ConnectionList& socketList, Connection* socket);
-void handleConnectionTermination(ConnectionList& connectionList, Connection* currentConnection);
+void handleServerMessage(const Message& message, const ConnectionList* socketList, Connection* socket);
+void handleConnectionTermination(ConnectionList* connectionList, Connection* currentConnection);
 
 /* ----------------------------- Implement Client functions ------------------------------------ */
 int Client::setup(const char* user, const char* ip, int port) {
@@ -25,8 +25,7 @@ int Client::setup(const char* user, const char* ip, int port) {
 
 int Client::run() {
     auto listenToServer = [] (Connection* connection) {  
-        std::vector<std::unique_ptr<Connection>> test;
-        connection->processIncomingMessages(test);
+        connection->processIncomingMessages(nullptr);
     };
 
     std::thread listenerThread(listenToServer, &connection);
@@ -59,13 +58,13 @@ int Client::run() {
 
 /* ----------------------------- Implement callback functions ---------------------------------- */
 void handleServerMessage(const Message& message,
-                         const ConnectionList& socketList,
+                         const ConnectionList* socketList,
                          Connection* currentConnection) {
     if (strcmp(currentConnection->getUserName(), message.getUser()) != 0) {
         std::cout << message.getUser() <<": " << message.getContent() << std::endl;
     }
 }
 
-void handleConnectionTermination(ConnectionList& connectionList, Connection* currentConnection) {
+void handleConnectionTermination(ConnectionList* connectionList, Connection* currentConnection) {
     std::cout << "Connection with the server was interrupted." << std::endl;
 }

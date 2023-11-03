@@ -111,7 +111,7 @@ void Connection::userName(const char* userName) {
     mUserName = std::string(userName);
 }
 
-void Connection::processIncomingMessages(ConnectionList& connectionList) {
+void Connection::processIncomingMessages(ConnectionList* connectionList) {
     ssize_t bytesRead;
     char buffer[MESSAGE_TOTAL_BUFFER_SIZE];
     auto connection = socketConnection;
@@ -133,14 +133,14 @@ void Connection::processIncomingMessages(ConnectionList& connectionList) {
     }
 }
 
-void Connection::onMessageReceived(const std::function<void(const Message&, ConnectionList&, Connection*)> callbackFunction) {
+void Connection::onMessageReceived(const std::function<void(const Message&, ConnectionList*, Connection*)> callbackFunction) {
     onMessageReceivedCallback = callbackFunction;
 }
 
-void Connection::onGreetingReceived(const std::function<void(const Message&, ConnectionList&, Connection*)> callbackFunction) {
+void Connection::onGreetingReceived(const std::function<void(const Message&, ConnectionList*, Connection*)> callbackFunction) {
     onGreetingReceivedCallback = callbackFunction;
 }
 
-void Connection::onTransmissionEnded(std::function<void(ConnectionList&, Connection*)> callbackFunction) {
+void Connection::onTransmissionEnded(std::function<void(ConnectionList*, Connection*)> callbackFunction) {
     onTransmissionEndedCallback = callbackFunction;
 }

@@ -17,10 +17,10 @@
 
 /* -------------------------- Forward declare callback functions ------------------------------- */
 void handleClientGreeting(const Message& message,
-                          ConnectionList& socketList,
+                          ConnectionList* socketList,
                           Connection* currentConnection);
-void handleClientMessage(const Message& message, ConnectionList& socketList, Connection* socket);
-void handleTransmissionEnd(ConnectionList& socketList, Connection* socket);
+void handleClientMessage(const Message& message, ConnectionList* socketList, Connection* socket);
+void handleTransmissionEnd(ConnectionList* socketList, Connection* socket);
 
 /* ----------------------------- Implement Server functions ------------------------------------ */
 int Server::setup(int port) {
@@ -42,7 +42,7 @@ int Server::run() {
         clientConnection->onGreetingReceived(handleClientGreeting);
 
         auto processMessage = [&clientConnection] (ConnectionList* clientConnections) {
-            clientConnection->processIncomingMessages(*clientConnections);
+            clientConnection->processIncomingMessages(clientConnections);
         };
 
         std::thread clientThread(processMessage, &clientConnections);
@@ -56,7 +56,7 @@ int Server::run() {
 
 /* ----------------------------- Implement callback functions ---------------------------------- */
 void handleClientGreeting(const Message& message,
-                          ConnectionList& socketList,
+                          ConnectionList* socketList,
                           Connection* currentConnection) {
     const auto userName = currentConnection->getUserName();
 
@@ -73,14 +73,14 @@ void handleClientGreeting(const Message& message,
     welcomeString << "The user \"" << currentConnection->getUserName() << "\" joined the chat.";
     welcomeMessage.content(welcomeString.str().c_str());
     std::cout << welcomeString.str() << std::endl;
-    for (const auto& connection: socketList) {
+    for (const auto& connection: *socketList) {
         if (connection.get() != currentConnection) {
             connection->sendMessage(welcomeMessage);
         }
     }
 }
 
-void handleClientMessage(const Message& message, ConnectionList& connectionList, Connection* currentConnection) {
+void handleClientMessage(const Message& message, ConnectionList* connectionList, Connection* currentConnection) {
     const auto userName = currentConnection->getUserName();
 
     if (strlen(userName) == 0) {
@@ -91,12 +91,12 @@ void handleClientMessage(const Message& message, ConnectionList& connectionList,
     } 
 
     std::cout << currentConnection->getUserName() <<": " << message.getContent() << std::endl;
-    for (const auto& connection: connectionList) {
+    for (const auto& connection: *connectionList) {
         connection->sendMessage(message);
     }
 }
 
-void handleTransmissionEnd(ConnectionList& connectionList, Connection* currentConnection) {
+void handleTransmissionEnd(ConnectionList* connectionList, Connection* currentConnection) {
     currentConnection->closeConnection();
 
     Message exitMessage;
@@ -107,11 +107,11 @@ void handleTransmissionEnd(ConnectionList& connectionList, Connection* currentCo
 
     std::cout << exitString.str() << std::endl;
 
-    ConnectionList::iterator it = connectionList.begin();
-    while (it != connectionList.end()) {
+    ConnectionList::iterator it = connectionList->begin();
+    while (it != connectionList->end()) {
         const auto chatMember = it->get();
         if (chatMember == currentConnection) {
-            connectionList.erase(it);
+            connectionList->erase(it);
             continue;
         }
         chatMember->sendMessage(exitMessage);
