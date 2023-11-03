@@ -17,7 +17,7 @@ This is a simple server-client chat, where multiple clients can connect to the c
 
 ## Getting Started
 
-Explain how to get the project up and running.
+The first step to run the chat is to have the full repository in your machine. The repository of this project can be obtained on github.com/rcdalapicola/CChat. Once you have the repository, you the follow the Build and Run steps to get your chat application running.
 
 ### Build
 
@@ -35,7 +35,7 @@ Example:
 release/chat-ser 8080
 ```
 
-Once the server is running, you can start as many clients as wanted. The client should be started with the following parameters: chat-cli <username> <server-ip>:<server-port>. 
+Once the server is running, you can start as many clients as wanted. The client should be started with the following parameters: `chat-cli <username> <server-ip>:<server-port>`. 
 
 Example:
 ```bash
@@ -47,7 +47,7 @@ After the user is connected, you can start sending messages, and the server will
 ## Remarks
 
 - Messages received from other clients will show their username and the message.
-  Ex: "TestUser42: Hello, world!"
+  Example: `TestUser42: Hello, world!`.
 
 - The server forwards the incoming messages to all the clients, but the client author of the message does not display it, since the message will still be visible on the author's terminal.
 
