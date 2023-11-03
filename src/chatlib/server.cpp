@@ -34,17 +34,17 @@ int Server::run() {
     // Main loop responsible for accepting new connections, and creating new threads
     // to listen to them.
     while (true) {
-        Connection* newConnection = listenerConnection.getIncomingConnection();
+        Connection* clientConnection = listenerConnection.getIncomingConnection();
 
         /* ------------------- Concurrency-protecting block ----------------- */ 
         mutexServer.lock();
-        clientConnections.emplace_back(newConnection);
-        auto& clientConnection = clientConnections.back();
+        clientConnections.emplace_back(clientConnection);
+        mutexServer.unlock();
+        /* ------------------- Concurrency-protecting block ----------------- */ 
+
         clientConnection->onMessageReceived(handleClientMessage);
         clientConnection->onTransmissionEnded(handleTransmissionEnd);
         clientConnection->onGreetingReceived(handleClientGreeting);
-        mutexServer.unlock();
-        /* ------------------- Concurrency-protecting block ----------------- */ 
 
         auto processMessage = [&clientConnection] (ConnectionList* clientConnections) {
             clientConnection->processIncomingMessages(clientConnections);
