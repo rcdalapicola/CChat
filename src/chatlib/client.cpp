@@ -24,7 +24,9 @@ int Client::setup(const char* user, const char* ip, int port) {
 }
 
 int Client::run() {
-    auto listenToServer = [] (Connection* connection) {  
+    auto listenToServer = [] (Connection* connection) { 
+        // Callback functions don't use ConnectionList, so we can call
+        // processIncomingMessages() with nullptr.
         connection->processIncomingMessages(nullptr);
     };
 
@@ -38,6 +40,7 @@ int Client::run() {
     std::cout << "You are logged in as \"" << connection.getUserName() \
               <<  "\". You can start chatting!" << std::endl;
 
+    // Main loop to get now messages from user and send them to server.
     char buffer[MESSAGE_CONTENT_BUFFER_SIZE];
     while (1) {
         std::cin.getline(buffer, sizeof(buffer));
@@ -57,6 +60,8 @@ int Client::run() {
 }
 
 /* ----------------------------- Implement callback functions ---------------------------------- */
+// Since none of these callbacks use the connectionList, we have pass this parameter as nullptr
+// when calling processIncomingMessages().
 void handleServerMessage(const Message& message,
                          const ConnectionList* connectionList,
                          Connection* currentConnection) {

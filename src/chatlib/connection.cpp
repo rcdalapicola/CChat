@@ -84,9 +84,8 @@ Connection* Connection::getIncomingConnection() {
 void Connection::processIncomingMessages(ConnectionList* connectionList) {
     ssize_t bytesRead;
     char buffer[MESSAGE_TOTAL_BUFFER_SIZE];
-    auto connection = socketConnection;
 
-    while ((bytesRead = recv(connection, buffer, MESSAGE_TOTAL_BUFFER_SIZE, 0)) > 0) {
+    while ((bytesRead = recv(socketConnection, buffer, MESSAGE_TOTAL_BUFFER_SIZE, 0)) > 0) {
         buffer[bytesRead] = '\0';
         Message incomingMessage(buffer);
         auto contentLength = strlen(incomingMessage.getContent());

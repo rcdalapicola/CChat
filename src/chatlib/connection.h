@@ -95,21 +95,36 @@ public:
     void closeConnection();
 
     /**
-     * @brief Callback function that will be called if a regular message is received.
+     * @brief Callback function that will be called if a regular message is received. This callback
+     *        function must be thread-safe.
      * 
-     * @param callbackFunction 
+     * @param callbackFunction function<void(const Message&, ConnectionList*, Connection*), where:
+     *                              const Message&:  Message received by the connection;
+     *                              ConnectionList*: All the openned connections.
+     *                              Connection*:     Current connection calling the callback.
      */
-    void onMessageReceived(const std::function<void(const Message&, ConnectionList*, Connection*)> callbackFunction);
+    void onMessageReceived(
+            const std::function<void(const Message&, ConnectionList*, Connection*)> callbackFunction);
     /**
-     * @brief Callback function that will be called if a greeting message is received.
+     * @brief Callback function that will be called if a greeting message is received. This callback
+     *        function must be thread-safe.
      * 
-     * @param callbackFunction 
+     * @param callbackFunction  function<void(const Message&, ConnectionList*, Connection*), where:
+     *                              const Message&:  Greeting message received by the connection.
+     *                                               This message will hold the correct user, but
+     *                                               it's content will be empty.
+     *                              ConnectionList*: All the openned connections.
+     *                              Connection*:     Current connection calling the callback.
      */
-    void onGreetingReceived(const std::function<void(const Message&, ConnectionList*, Connection*)> callbackFunction);
+    void onGreetingReceived(
+            const std::function<void(const Message&, ConnectionList*, Connection*)> callbackFunction);
     /**
-     * @brief Callback function that will be called when the connection with peer ends.
+     * @brief Callback function that will be called when the connection with peer ends. This callback
+     *        function must be thread-safe.
      * 
-     * @param callbackFunction 
+     * @param callbackFunction  function<void(ConnectionList*, Connection*), where:
+     *                              ConnectionList*: All the openned connections.
+     *                              Connection*:     Current connection calling the callback.
      */
     void onTransmissionEnded(std::function<void(ConnectionList*, Connection*)> callbackFunction);
 

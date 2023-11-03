@@ -6,9 +6,12 @@
 #include <cstring>
 #include <iostream>
 #include <memory>
+#include <mutex>
 #include <sstream>
 #include <thread>
 
+
+static std::mutex mutexServer; // Mutex to protect ConnectionList changes on callback functions
 
 /* -------------------------- Forward declare callback functions ------------------------------- */
 void handleClientGreeting(const Message& message,
@@ -28,13 +31,20 @@ int Server::setup(int port) {
 }
 
 int Server::run() {
+    // Main loop responsible for accepting new connections, and creating new threads
+    // to listen to them.
     while (true) {
-        clientConnections.emplace_back(listenerConnection.getIncomingConnection());
-        auto& clientConnection = clientConnections.back();
+        Connection* newConnection = listenerConnection.getIncomingConnection();
 
+        /* ------------------- Concurrency-protecting block ----------------- */ 
+        mutexServer.lock();
+        clientConnections.emplace_back(newConnection);
+        auto& clientConnection = clientConnections.back();
         clientConnection->onMessageReceived(handleClientMessage);
         clientConnection->onTransmissionEnded(handleTransmissionEnd);
         clientConnection->onGreetingReceived(handleClientGreeting);
+        mutexServer.unlock();
+        /* ------------------- Concurrency-protecting block ----------------- */ 
 
         auto processMessage = [&clientConnection] (ConnectionList* clientConnections) {
             clientConnection->processIncomingMessages(clientConnections);
@@ -68,11 +78,16 @@ void handleClientGreeting(const Message& message,
     welcomeString << "The user \"" << currentConnection->getUserName() << "\" joined the chat.";
     welcomeMessage.content(welcomeString.str().c_str());
     std::cout << welcomeString.str() << std::endl;
+
+    /* ------------------- Concurrency-protecting block ----------------- */ 
+    mutexServer.lock();
     for (const auto& connection: *connectionList) {
         if (connection.get() != currentConnection) {
             connection->sendMessage(welcomeMessage);
         }
     }
+    mutexServer.unlock();
+    /* ------------------- Concurrency-protecting block ----------------- */ 
 }
 
 void handleClientMessage(const Message& message, ConnectionList* connectionList, Connection* currentConnection) {
@@ -84,24 +99,30 @@ void handleClientMessage(const Message& message, ConnectionList* connectionList,
         std::cout << "Error: Message is coming from unexpected user." << std::endl;
         return;
     } 
-
     std::cout << currentConnection->getUserName() <<": " << message.getContent() << std::endl;
+
+    /* ------------------- Concurrency-protecting block ----------------- */ 
+    mutexServer.lock();
     for (const auto& connection: *connectionList) {
         connection->sendMessage(message);
     }
+    mutexServer.unlock();
+    /* ------------------- Concurrency-protecting block ----------------- */ 
 }
 
 void handleTransmissionEnd(ConnectionList* connectionList, Connection* currentConnection) {
-    currentConnection->closeConnection();
-
     Message exitMessage;
     exitMessage.user("Server");
+
     std::ostringstream exitString;
     exitString << "The user \"" << currentConnection->getUserName() << "\" left the chat.";
     exitMessage.content(exitString.str().c_str());
 
     std::cout << exitString.str() << std::endl;
 
+    /* ------------------- Concurrency-protecting block ----------------- */ 
+    mutexServer.lock();
+    currentConnection->closeConnection();
     ConnectionList::iterator it = connectionList->begin();
     while (it != connectionList->end()) {
         const auto chatMember = it->get();
@@ -112,4 +133,7 @@ void handleTransmissionEnd(ConnectionList* connectionList, Connection* currentCo
         chatMember->sendMessage(exitMessage);
         std::advance(it, 1);
     }
+    mutexServer.unlock();
+    /* ------------------- Concurrency-protecting block ----------------- */
+
 }
