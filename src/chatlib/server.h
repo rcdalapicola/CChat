@@ -1,3 +1,6 @@
+#ifndef SERVER_H
+#define SERVER_H
+
 #include "connection.h"
 
 class Server {
@@ -19,3 +22,5 @@ private:
     Connection listenerConnection;
     ConnectionList clientConnections;
 };
+
+#endif //SERVER_H

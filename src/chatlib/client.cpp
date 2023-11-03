@@ -2,13 +2,13 @@
 
 #include "connection.h"
 
+#include <cstring>
 #include <iostream>
 #include <thread>
-#include <cstring>
 
 
 /* -------------------------- Forward declare callback functions ------------------------------- */
-void handleServerMessage(const Message& message, const ConnectionList* socketList, Connection* socket);
+void handleServerMessage(const Message& message, const ConnectionList* connectionList, Connection* currentConnection);
 void handleConnectionTermination(ConnectionList* connectionList, Connection* currentConnection);
 
 /* ----------------------------- Implement Client functions ------------------------------------ */
@@ -58,7 +58,7 @@ int Client::run() {
 
 /* ----------------------------- Implement callback functions ---------------------------------- */
 void handleServerMessage(const Message& message,
-                         const ConnectionList* socketList,
+                         const ConnectionList* connectionList,
                          Connection* currentConnection) {
     if (strcmp(currentConnection->getUserName(), message.getUser()) != 0) {
         std::cout << message.getUser() <<": " << message.getContent() << std::endl;

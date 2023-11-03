@@ -4,23 +4,18 @@
 #include "message.h"
 
 #include <cstring>
-#include <functional>
 #include <iostream>
 #include <memory>
-#include <netinet/in.h>
 #include <sstream>
-#include <sys/socket.h>
 #include <thread>
-#include <unistd.h>     // close()
-#include <vector>
 
 
 /* -------------------------- Forward declare callback functions ------------------------------- */
 void handleClientGreeting(const Message& message,
-                          ConnectionList* socketList,
+                          ConnectionList* connectionList,
                           Connection* currentConnection);
-void handleClientMessage(const Message& message, ConnectionList* socketList, Connection* socket);
-void handleTransmissionEnd(ConnectionList* socketList, Connection* socket);
+void handleClientMessage(const Message& message, ConnectionList* connectionList, Connection* currentConnection);
+void handleTransmissionEnd(ConnectionList* connectionList, Connection* currentConnection);
 
 /* ----------------------------- Implement Server functions ------------------------------------ */
 int Server::setup(int port) {
@@ -56,7 +51,7 @@ int Server::run() {
 
 /* ----------------------------- Implement callback functions ---------------------------------- */
 void handleClientGreeting(const Message& message,
-                          ConnectionList* socketList,
+                          ConnectionList* connectionList,
                           Connection* currentConnection) {
     const auto userName = currentConnection->getUserName();
 
@@ -73,7 +68,7 @@ void handleClientGreeting(const Message& message,
     welcomeString << "The user \"" << currentConnection->getUserName() << "\" joined the chat.";
     welcomeMessage.content(welcomeString.str().c_str());
     std::cout << welcomeString.str() << std::endl;
-    for (const auto& connection: *socketList) {
+    for (const auto& connection: *connectionList) {
         if (connection.get() != currentConnection) {
             connection->sendMessage(welcomeMessage);
         }

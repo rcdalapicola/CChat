@@ -1,4 +1,8 @@
+#ifndef CLIENT_H
+#define CLIENT_H
+
 #include "connection.h"
+
 
 class Client {
 public:
@@ -20,3 +24,5 @@ public:
 private:
     Connection connection;
 };
+
+#endif //CLIENT_H

@@ -6,6 +6,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <vector>
 
 
 class Connection;
@@ -61,7 +62,7 @@ public:
      * 
      * @return Connection* Connection object of the new incoming connection
      */
-    Connection* getIncomingConnection(); //return socket for incoming connection
+    Connection* getIncomingConnection();
 
     /**
      * @brief This function will keep listening to the incoming messages, and calling the
